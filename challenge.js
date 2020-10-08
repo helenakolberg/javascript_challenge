@@ -13,11 +13,10 @@
 
 // QUESTION 3: What are the intervals of date and times (in UTC) where there are at least 2 workers free?
 
-// ANSWER: IT'S A VERY LONG ARRAY! CALL findOverlappingIntervals() FOR MY ANSWER. IT RETURNS AN ARRAY OF ARRAYS WHERE THE START TIME IS AT
-// INDEX 0 AND THE END TIME AT INDEX 1. I LOOPED THROUGH THE INTERVALS OF THE FIRST WORKER AND CHECKED THEM AGAINST ALL THE INTERVALS FOR 
-// THE OTHER 19 WORKERS. TO GET ALL OVERLAPPING INTERVALS, I WOULD CONTINUE LOOPING: CHECK THE SECOND WORKER'S INTERVALS AGAINST THE OTHER 
-// 18'S, THEN THE THIRD WORKER'S INTERVALS AGAINST THE OTHER 17'S ETC. THIS IS A BIT BULKY SO I WOULD RESEARCH WAYS TO MAKE THIS SLICKER -
-// MAYBE SOMETHING LIKE THE BIG-O NOTATION.
+// ANSWER: I'VE COMPARED THE INTERVAL TIMES BETWEEN EACH WORKER WHICH GIVES A VERY LONG ANSWER. CALLING THE findOverlappingIntervals()
+// LOGS TO THE CONSOLE THE INDEX NUMBERS OF THE TWO WORKERS BEING COMPARED, FOLLOWED BY AN ARRAY OF ARRAYS WHERE INDEX 0 REPRESENTS
+// THE START OF THE OVERLAPPING INTERVAL AND INDEX 1 REPRESENTS THE END OF THE OVERLAPPING INTERVAL. THIS STILL NEEDS A BIT OF CLEANING
+// UP TO REMOVE THE DUPLICATE TIMES.
 
 
 const lineReader = require('readline').createInterface({
@@ -103,43 +102,43 @@ const findLatestIntervalEnd = () => {
     return formattedDate;
 }
 
-const findOverlappingIntervals = () => {
-    // CREATES AN ARRAY OF WORKERS' INTERVAL ARRAYS
-    const workersTimes = workers.map(worker => worker.times);
-    let overlaps = [];
+const compareTimesBetweenWorkers = (workerOne, workerTwo) => {
+    const overlaps = []
 
-    // LOOPS THROUGH THE FIRST WORKER'S INTERVAL ARRAYS
-    for (const timeInterval of workersTimes[0]) {
-        let currentStartTime = timeInterval[0];
-        let currentEndTime = timeInterval[1];
+    for(let i = 0; i < workerOne.length; i++) {
+        let workerOneIntervalStart = workerOne[i][0];
+        let workerOneIntervalEnd = workerOne[i][1];
 
-        // LOOPS THROUGH ALL WORKERS
-        for (const worker of workersTimes) {
-            if (workersTimes.indexOf(worker) > 0) {
+        for(let j = 0; j < workerTwo.length; j++) {
+            let workerTwoIntervalStart = workerTwo[j][0];
+            let workerTwoIntervalEnd = workerTwo[j][1];
 
-                // LOOPS THROUGH THE INTERVAL ARRAYS OF A WORKER
-                for (const timeInterval of worker) {
-                    let nextStartTime = timeInterval[0];
-                    let nextEndTime = timeInterval[1];
+            if (moment(workerOneIntervalStart).isBefore(moment(workerTwoIntervalEnd)) && moment(workerTwoIntervalStart).isBefore(moment(workerOneIntervalEnd))) {
+                let overlap = []
 
-                    if (moment(currentEndTime).isAfter(moment(nextStartTime)) && moment(currentStartTime).isBefore(moment(nextEndTime))) {
-                         let overlap = [];
+                let earliestEnd = moment(workerOneIntervalEnd).isBefore(moment(workerTwoIntervalEnd)) ? workerOneIntervalEnd : workerTwoIntervalEnd;
+                let latestStart = moment(workerOneIntervalStart).isAfter(moment(workerTwoIntervalStart)) ? workerOneIntervalStart : workerTwoIntervalStart;
 
-                        if (moment(currentStartTime).isBefore(moment(nextStartTime))) {
-                            overlap.push(nextStartTime);
-                            overlap.push(currentEndTime);
-                            overlaps.push(overlap);
-                        } else {
-                            overlap.push(currentStartTime);
-                            overlap.push(nextEndTime);
-                            overlaps.push(overlap);
-                        }
-                    }
-                }
+                overlap.push(latestStart);
+                overlap.push(earliestEnd);
+                overlaps.push(overlap);
             }
         }
     }
     return overlaps;
+}
+
+const findOverlappingIntervals = () => {
+
+    const workersTimes = workers.map(worker => worker.times);
+
+    for (let i = 0; i < workersTimes.length; i++) {
+        for(let j = i + 1; j < workersTimes.length; j++) {
+            console.log(i, j);
+            console.log(compareTimesBetweenWorkers(workersTimes[i], workersTimes[j]));
+        }
+    }
+
 }
 
 
